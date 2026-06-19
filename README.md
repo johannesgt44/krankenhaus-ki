@@ -12,18 +12,37 @@ https://github.com/johannesgt44/krankenhaus-ki
 
 Der Server ist ein Go-REST-Server fuer die Krankenhaus-Domaene.
 
+Zuerst die PostgreSQL-Datenbank per Docker Compose starten:
+
 ```powershell
-$env:DB_HOST = "localhost"
-$env:DB_PORT = "5432"
-$env:DB_NAME = "postgres"
-$env:DB_USER = "postgres"
-$env:DB_PASSWORD = "p"
-$env:DB_SSLMODE = "disable"
-$env:DB_INIT = "true"
-& "C:\Program Files\Go\bin\go.exe" run ./cmd/server
+docker compose up -d db
 ```
 
-`DB_INIT=true` erzeugt die Tabellen fuer Entwicklung/Test neu und befuellt sie mit Beispieldaten. Ohne dieses Flag wird die vorhandene Datenbank nur verwendet.
+Dann den Go-Server starten und die Tabellen fuer Entwicklung/Test neu erzeugen und befuellen:
+
+```powershell
+go run ./cmd/server -db-init
+```
+
+Wenn `go` nicht im `PATH` ist:
+
+```powershell
+& "C:\Program Files\Go\bin\go.exe" run ./cmd/server -db-init
+```
+
+Ohne DB-Reset:
+
+```powershell
+go run ./cmd/server
+```
+
+Der Server lauscht standardmaessig auf `http://localhost:8080`. Die Defaults sind `localhost:5432`, Datenbank `postgres`, Benutzer `postgres`, Passwort `p`.
+
+Datenbank stoppen:
+
+```powershell
+docker compose down
+```
 
 ## KI-Werkzeuge
 
@@ -105,7 +124,7 @@ Keycloak/OIDC ist optional und in dieser ersten Umsetzung nicht erforderlich. Di
 Die Integrationstests nutzen `net/http/httptest` und pruefen die REST-App ohne manuell gestarteten externen Server.
 
 ```powershell
-& "C:\Program Files\Go\bin\go.exe" test ./...
+go test ./...
 ```
 
 Getestet werden:

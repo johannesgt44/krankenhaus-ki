@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"errors"
+	"flag"
 	"log"
 	"net/http"
 	"os"
@@ -25,6 +26,9 @@ func main() {
 
 func starten() error {
 	konfig := konfiguration.Laden()
+	flag.StringVar(&konfig.ServerAdresse, "addr", konfig.ServerAdresse, "Adresse, auf der der Server lauscht")
+	flag.BoolVar(&konfig.Datenbank.Init, "db-init", konfig.Datenbank.Init, "Datenbank beim Start neu erzeugen und befuellen")
+	flag.Parse()
 
 	db, err := datenbank.Oeffnen(konfig.Datenbank)
 	if err != nil {
