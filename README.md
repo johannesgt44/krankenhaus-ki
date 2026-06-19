@@ -15,7 +15,7 @@ Der Server ist ein Go-REST-Server fuer die Krankenhaus-Domaene.
 Zuerst die PostgreSQL-Datenbank per Docker Compose starten:
 
 ```powershell
-docker compose up -d db
+docker compose -f extras/compose/compose.yml up -d db
 ```
 
 Dann den Go-Server starten und die Tabellen fuer Entwicklung/Test neu erzeugen und befuellen:
@@ -35,7 +35,7 @@ Der Server lauscht standardmaessig auf `http://localhost:8080`. Die Defaults sin
 Datenbank stoppen:
 
 ```powershell
-docker compose down
+docker compose -f extras/compose/compose.yml down
 ```
 
 ## KI-Werkzeuge
@@ -64,7 +64,7 @@ Unterstuetzte REST-Operationen:
 - `PUT /rest/krankenhaus/{id}`
 - `DELETE /rest/krankenhaus/{id}`
 
-Die Implementierung nutzt eine Go-typische Struktur mit `internal/app`, `internal/konfiguration`, `internal/krankenhaus/rest`, `internal/krankenhaus/service`, `internal/krankenhaus/repository`, `internal/datenbank` und `internal/problem`.
+Die Implementierung nutzt eine Go-typische Struktur mit `cmd/server`, `internal/app`, `internal/config`, `internal/database`, `internal/krankenhaus/domain`, `internal/krankenhaus/rest`, `internal/krankenhaus/service`, `internal/krankenhaus/repository`, `internal/problem` und `extras` fuer begleitende Dateien.
 
 ### Deutsche Domaenensyntax
 
@@ -107,7 +107,7 @@ Die Modelle sind explizit auf die vorhandenen Tabellen gemappt:
 - `adresse`
 - `fachbereich`
 
-Die Schema-Erzeugung fuer Entwicklung/Test erfolgt ueber SQL-Scripts in `internal/datenbank/sql`, nicht ueber GORM `AutoMigrate`.
+Die Schema-Erzeugung fuer Entwicklung/Test erfolgt ueber SQL-Scripts in `internal/database/sql`, nicht ueber GORM `AutoMigrate`.
 
 ### Optional: OIDC mit Keycloak
 

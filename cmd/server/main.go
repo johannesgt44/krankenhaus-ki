@@ -12,8 +12,8 @@ import (
 	"time"
 
 	"github.com/johannesgt44/krankenhaus-ki/internal/app"
-	"github.com/johannesgt44/krankenhaus-ki/internal/datenbank"
-	"github.com/johannesgt44/krankenhaus-ki/internal/konfiguration"
+	"github.com/johannesgt44/krankenhaus-ki/internal/config"
+	"github.com/johannesgt44/krankenhaus-ki/internal/database"
 	"github.com/johannesgt44/krankenhaus-ki/internal/krankenhaus/repository"
 	"github.com/johannesgt44/krankenhaus-ki/internal/krankenhaus/service"
 )
@@ -25,12 +25,12 @@ func main() {
 }
 
 func starten() error {
-	konfig := konfiguration.Laden()
+	konfig := config.Laden()
 	flag.StringVar(&konfig.ServerAdresse, "addr", konfig.ServerAdresse, "Adresse, auf der der Server lauscht")
 	flag.BoolVar(&konfig.Datenbank.Init, "db-init", konfig.Datenbank.Init, "Datenbank beim Start neu erzeugen und befuellen")
 	flag.Parse()
 
-	db, err := datenbank.Oeffnen(konfig.Datenbank)
+	db, err := database.Oeffnen(konfig.Datenbank)
 	if err != nil {
 		return err
 	}
