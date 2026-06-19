@@ -11,6 +11,17 @@ The system SHALL create PostgreSQL connections from documented configuration val
 - **WHEN** the server starts with invalid PostgreSQL configuration
 - **THEN** startup fails with a clear error
 
+### Requirement: Persistence uses GORM mappings
+The system SHALL use GORM models to map the existing PostgreSQL tables.
+
+#### Scenario: Krankenhaus model is mapped
+- **WHEN** the repository accesses Krankenhaus data
+- **THEN** it uses a GORM model mapped to the `krankenhaus` table and its existing columns
+
+#### Scenario: Related models are mapped
+- **WHEN** the repository loads or saves addresses and departments
+- **THEN** it uses GORM models mapped to `adresse` and `fachbereich`
+
 ### Requirement: Repository hides SQL access from handlers
 The system SHALL access Krankenhaus persistence through a repository boundary instead of direct SQL in HTTP handlers.
 
@@ -21,6 +32,14 @@ The system SHALL access Krankenhaus persistence through a repository boundary in
 #### Scenario: Create uses repository
 - **WHEN** the service creates a hospital
 - **THEN** it calls the repository to insert the hospital data and return the new ID
+
+#### Scenario: Update uses repository
+- **WHEN** the service updates a hospital
+- **THEN** it calls the repository to persist changes and increment or return the new version
+
+#### Scenario: Delete uses repository
+- **WHEN** the service deletes a hospital
+- **THEN** it calls the repository to delete the hospital and dependent rows through the database relationship
 
 ### Requirement: Persistence maps missing rows to domain errors
 The system SHALL map missing database rows to a domain-level not-found error.

@@ -27,3 +27,17 @@ The system SHALL include an integration test for invalid create input.
 #### Scenario: Invalid create test succeeds
 - **WHEN** the test posts an invalid hospital payload
 - **THEN** the response status is HTTP 422 and the response content type is Problem Details JSON
+
+### Requirement: Integration test covers update flow
+The system SHALL include an integration test for updating a hospital through REST.
+
+#### Scenario: Update test succeeds
+- **WHEN** the test updates an existing hospital with a matching `If-Match` header
+- **THEN** the response status is HTTP 204 and an `ETag` header is present
+
+### Requirement: Integration test covers delete flow
+The system SHALL include an integration test for deleting a hospital through REST.
+
+#### Scenario: Delete test succeeds
+- **WHEN** the test deletes an existing hospital
+- **THEN** the response status is HTTP 204 and the hospital is no longer returned as an existing resource
