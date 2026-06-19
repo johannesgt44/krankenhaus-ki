@@ -195,7 +195,9 @@ func versionAusIfMatch(w http.ResponseWriter, r *http.Request) (int, bool) {
 }
 
 func leseJSON(w http.ResponseWriter, r *http.Request, ziel any) bool {
-	defer r.Body.Close()
+	defer func() {
+		_ = r.Body.Close()
+	}()
 	decoder := json.NewDecoder(r.Body)
 	decoder.DisallowUnknownFields()
 	if err := decoder.Decode(ziel); err != nil {
