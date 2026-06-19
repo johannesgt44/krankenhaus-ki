@@ -41,4 +41,4 @@ None.
   - OIDC/JWT validation dependency for Go.
   - Keycloak Docker Compose service and local setup documentation.
 - Affected external systems:
-  - local Keycloak container with a `javascript` realm, `javascript-client` client, and admin role assignments.
+  - local Keycloak container with a `python` realm, `python-client` client, and admin role assignments.

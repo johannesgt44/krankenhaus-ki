@@ -43,8 +43,8 @@ func Laden() Konfiguration {
 		},
 		OIDC: OIDCKonfiguration{
 			Aktiv:              envBool("OIDC_ENABLED", true),
-			IssuerURL:          envString("OIDC_ISSUER_URL", "http://localhost:8880/realms/javascript"),
-			ClientID:           envString("OIDC_CLIENT_ID", "javascript-client"),
+			IssuerURL:          envString("OIDC_ISSUER_URL", "http://localhost:8880/realms/python"),
+			ClientID:           envString("OIDC_CLIENT_ID", "python-client"),
 			ErforderlicheRolle: envString("OIDC_REQUIRED_ROLE", "admin"),
 		},
 	}

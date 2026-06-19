@@ -13,10 +13,10 @@ func TestOIDCDefaultsSindAktiv(t *testing.T) {
 	if !konfig.OIDC.Aktiv {
 		t.Fatal("OIDC sollte standardmaessig aktiv sein")
 	}
-	if konfig.OIDC.IssuerURL != "http://localhost:8880/realms/javascript" {
+	if konfig.OIDC.IssuerURL != "http://localhost:8880/realms/python" {
 		t.Fatalf("IssuerURL = %q", konfig.OIDC.IssuerURL)
 	}
-	if konfig.OIDC.ClientID != "javascript-client" {
+	if konfig.OIDC.ClientID != "python-client" {
 		t.Fatalf("ClientID = %q", konfig.OIDC.ClientID)
 	}
 	if konfig.OIDC.ErforderlicheRolle != "admin" {

@@ -49,11 +49,11 @@ The alternative was protecting the complete `/rest/krankenhaus` mount and adding
 
 The planned local Keycloak setup uses:
 
-- realm: `javascript`
-- client: `javascript-client`
+- realm: `python`
+- client: `python-client`
 - role: `admin`
 
-The middleware should prefer client roles from `resource_access["javascript-client"].roles`. Accepting `realm_access.roles` as a fallback is acceptable if it simplifies manual local setup, but tests should cover the configured client-role behavior.
+The middleware should prefer client roles from `resource_access["python-client"].roles`. Accepting `realm_access.roles` as a fallback is acceptable if it simplifies manual local setup, but tests should cover the configured client-role behavior.
 
 ### Add OIDC configuration under `internal/config`
 
@@ -67,8 +67,8 @@ Configuration will be loaded from environment variables, for example:
 Recommended defaults for local development:
 
 - `OIDC_ENABLED=true`
-- `OIDC_ISSUER_URL=http://localhost:8880/realms/javascript`
-- `OIDC_CLIENT_ID=javascript-client`
+- `OIDC_ISSUER_URL=http://localhost:8880/realms/python`
+- `OIDC_CLIENT_ID=python-client`
 - `OIDC_REQUIRED_ROLE=admin`
 
 Keeping `OIDC_ENABLED=true` by default makes protected routes active for normal workshop starts. Developers can set `OIDC_ENABLED=false` explicitly when they want to run the server without local Keycloak.

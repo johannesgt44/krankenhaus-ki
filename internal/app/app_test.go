@@ -339,14 +339,15 @@ func (f fakeVerifizierer) Verifizieren(_ context.Context, _ string, claims any) 
 		return f.err
 	}
 	keycloakClaims := claims.(*security.KeycloakClaims)
+	keycloakClaims.AuthorizedParty = "python-client"
 	keycloakClaims.ResourceAccess = map[string]security.RollenZugriff{
-		"javascript-client": {Roles: f.rollen},
+		"python-client": {Roles: f.rollen},
 	}
 	return nil
 }
 
 func authMiddlewareMitRollen(rollen []string, err error) func(http.Handler) http.Handler {
-	autorisierer := security.NeuerAutorisierer(fakeVerifizierer{rollen: rollen, err: err}, "javascript-client", "admin")
+	autorisierer := security.NeuerAutorisierer(fakeVerifizierer{rollen: rollen, err: err}, "python-client", "admin")
 	return autorisierer.Middleware
 }
 

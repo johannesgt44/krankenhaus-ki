@@ -1,7 +1,7 @@
 ## 1. Configuration
 
 - [x] 1.1 Add OIDC configuration fields to `internal/config` for enabled flag, issuer URL, client ID, and required role.
-- [x] 1.2 Add local defaults for Keycloak realm `javascript`, client `javascript-client`, and role `admin`.
+- [x] 1.2 Add local defaults for Keycloak realm `python`, client `python-client`, and role `admin`.
 - [x] 1.3 Pass OIDC configuration from `cmd/server` into app/router setup.
 
 ## 2. Security Middleware
@@ -34,7 +34,7 @@
 
 - [x] 5.1 Add Keycloak Docker Compose support under `extras/compose`, oriented on the reference project.
 - [x] 5.2 Document local Keycloak startup and access URL.
-- [x] 5.3 Document realm `javascript`, client `javascript-client`, role `admin`, and test users.
+- [x] 5.3 Document realm `python`, client `python-client`, role `admin`, and test users.
 - [x] 5.4 Document required environment variables for enabling OIDC in the Go server.
 - [x] 5.5 Document how to obtain a token and call protected endpoints with Bruno or curl.
 

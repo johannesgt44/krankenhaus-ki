@@ -123,19 +123,19 @@ Keycloak ist danach unter `http://localhost:8880` erreichbar. Die lokale Admin-A
 
 Lokale Keycloak-Konfiguration fuer die Entwicklung:
 
-- Realm: `javascript`
-- Client: `javascript-client`
+- Realm: `python`
+- Client: `python-client`
 - Client-Rolle: `admin`
 - Testuser mit Admin-Rolle: z.B. `admin` mit Passwort `p`
 - Testuser ohne Admin-Rolle: z.B. `user` mit Passwort `p`
 
-Im Client `javascript-client` sollte fuer lokale curl-Tests Direct Access Grants aktiviert sein. Die Rolle `admin` wird als Client-Rolle am Client `javascript-client` angelegt und dem Admin-Testuser zugewiesen. Der Server liest Rollen aus `resource_access["javascript-client"].roles`; Realm-Rollen werden zusaetzlich als lokaler Fallback akzeptiert.
+Im Client `python-client` sollte fuer lokale curl-Tests Direct Access Grants aktiviert sein. Die Rolle `admin` wird als Client-Rolle am Client `python-client` angelegt und dem Admin-Testuser zugewiesen. Der Server liest Rollen aus `resource_access["python-client"].roles`; Realm-Rollen werden zusaetzlich als lokaler Fallback akzeptiert.
 
 Server mit OIDC starten:
 
 ```powershell
-$env:OIDC_ISSUER_URL="http://localhost:8880/realms/javascript"
-$env:OIDC_CLIENT_ID="javascript-client"
+$env:OIDC_ISSUER_URL="http://localhost:8880/realms/python"
+$env:OIDC_CLIENT_ID="python-client"
 $env:OIDC_REQUIRED_ROLE="admin"
 go run ./cmd/server
 ```
@@ -150,7 +150,7 @@ go run ./cmd/server
 Token fuer den Admin-Testuser holen:
 
 ```powershell
-$tokenResponse = Invoke-RestMethod -Method Post "http://localhost:8880/realms/javascript/protocol/openid-connect/token" -ContentType "application/x-www-form-urlencoded" -Body "grant_type=password&client_id=javascript-client&username=admin&password=p"
+$tokenResponse = Invoke-RestMethod -Method Post "http://localhost:8880/realms/python/protocol/openid-connect/token" -ContentType "application/x-www-form-urlencoded" -Body "grant_type=password&client_id=python-client&username=admin&password=p"
 $token = $tokenResponse.access_token
 ```
 

@@ -18,8 +18,9 @@ services:
       start_period: 5s
 
   keycloak:
-    image: quay.io/keycloak/keycloak:26.0
-    command: start-dev
+    image: dhi.io/keycloak:26.6.1-debian13
+    command: ["start-dev", "--hostname-strict=false"]
+    user: "65532:65532"
     ports:
       - published: 8880
         target: 8080
@@ -28,8 +29,9 @@ services:
       KC_BOOTSTRAP_ADMIN_USERNAME: tmp
       KC_BOOTSTRAP_ADMIN_PASSWORD: p
     volumes:
-      - keycloak_data_krankenhaus_ki:/opt/keycloak/data
+      - kc_data:/opt/keycloak/data
 
 volumes:
   pg_data_krankenhaus_ki:
-  keycloak_data_krankenhaus_ki:
+  kc_data:
+    external: true

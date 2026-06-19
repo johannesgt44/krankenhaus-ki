@@ -2,6 +2,7 @@ package security
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -28,13 +29,17 @@ type Autorisierer struct {
 }
 
 type KeycloakClaims struct {
-	ResourceAccess map[string]RollenZugriff `json:"resource_access"`
-	RealmAccess    RollenZugriff            `json:"realm_access"`
+	Audience        Zielgruppen              `json:"aud"`
+	AuthorizedParty string                   `json:"azp"`
+	ResourceAccess  map[string]RollenZugriff `json:"resource_access"`
+	RealmAccess     RollenZugriff            `json:"realm_access"`
 }
 
 type RollenZugriff struct {
 	Roles []string `json:"roles"`
 }
+
+type Zielgruppen []string
 
 func NeuerOIDCAutorisierer(ctx context.Context, konfig OIDCKonfiguration) (*Autorisierer, error) {
 	if strings.TrimSpace(konfig.IssuerURL) == "" {
@@ -51,7 +56,7 @@ func NeuerOIDCAutorisierer(ctx context.Context, konfig OIDCKonfiguration) (*Auto
 	if err != nil {
 		return nil, fmt.Errorf("OIDC provider konnte nicht geladen werden: %w", err)
 	}
-	verifier := provider.Verifier(&oidc.Config{ClientID: konfig.ClientID})
+	verifier := provider.Verifier(&oidc.Config{ClientID: konfig.ClientID, SkipClientIDCheck: true})
 	return NeuerAutorisierer(oidcVerifizierer{verifier: verifier}, konfig.ClientID, konfig.ErforderlicheRolle), nil
 }
 
@@ -76,6 +81,10 @@ func (a *Autorisierer) Middleware(next http.Handler) http.Handler {
 			a.schreibeUnauthorized(w)
 			return
 		}
+		if !claims.HatClient(a.clientID) {
+			a.schreibeUnauthorized(w)
+			return
+		}
 		if !claims.HatRolle(a.clientID, a.erforderlicheRolle) {
 			problem.Schreiben(w, http.StatusForbidden, "Der Token enthaelt nicht die erforderliche Rolle.")
 			return
@@ -83,6 +92,18 @@ func (a *Autorisierer) Middleware(next http.Handler) http.Handler {
 
 		next.ServeHTTP(w, r)
 	})
+}
+
+func (c KeycloakClaims) HatClient(clientID string) bool {
+	if c.AuthorizedParty == clientID {
+		return true
+	}
+	for _, audience := range c.Audience {
+		if audience == clientID {
+			return true
+		}
+	}
+	return false
 }
 
 func (c KeycloakClaims) HatRolle(clientID string, rolle string) bool {
@@ -101,6 +122,21 @@ func (z RollenZugriff) enthaelt(rolle string) bool {
 	return false
 }
 
+func (z *Zielgruppen) UnmarshalJSON(data []byte) error {
+	var mehrere []string
+	if err := json.Unmarshal(data, &mehrere); err == nil {
+		*z = mehrere
+		return nil
+	}
+
+	var einzelne string
+	if err := json.Unmarshal(data, &einzelne); err != nil {
+		return err
+	}
+	*z = []string{einzelne}
+	return nil
+}
+
 func bearerToken(header string) (string, bool) {
 	felder := strings.Fields(header)
 	if len(felder) != 2 || !strings.EqualFold(felder[0], "Bearer") || strings.TrimSpace(felder[1]) == "" {
@@ -110,7 +146,7 @@ func bearerToken(header string) (string, bool) {
 }
 
 func (a *Autorisierer) schreibeUnauthorized(w http.ResponseWriter) {
-	w.Header().Set("WWW-Authenticate", `Bearer realm="javascript"`)
+	w.Header().Set("WWW-Authenticate", `Bearer realm="python"`)
 	problem.Schreiben(w, http.StatusUnauthorized, "Ein gueltiger Bearer-Token ist erforderlich.")
 }
 
