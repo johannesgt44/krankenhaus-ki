@@ -1,11 +1,11 @@
-package datenbank
+package database
 
 import (
 	"embed"
 	"fmt"
 	"strings"
 
-	"github.com/johannesgt44/krankenhaus-ki/internal/konfiguration"
+	"github.com/johannesgt44/krankenhaus-ki/internal/config"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -13,7 +13,7 @@ import (
 //go:embed sql/schema.sql sql/seed.sql
 var scripts embed.FS
 
-func Oeffnen(konfig konfiguration.DatenbankKonfiguration) (*gorm.DB, error) {
+func Oeffnen(konfig config.DatenbankKonfiguration) (*gorm.DB, error) {
 	db, err := gorm.Open(postgres.Open(konfig.DSN()), &gorm.Config{})
 	if err != nil {
 		return nil, fmt.Errorf("datenbankverbindung fehlgeschlagen: %w", err)
