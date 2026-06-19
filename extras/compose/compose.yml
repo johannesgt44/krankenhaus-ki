@@ -1,7 +1,6 @@
 services:
   db:
     image: dhi.io/postgres:18.3-debian13
-    container_name: krankenhaus-ki-postgres
     ports:
       - published: 5432
         target: 5432
@@ -18,5 +17,21 @@ services:
       retries: 5
       start_period: 5s
 
+  keycloak:
+    image: dhi.io/keycloak:26.6.1-debian13
+    command: ["start-dev", "--hostname-strict=false"]
+    user: "65532:65532"
+    ports:
+      - published: 8880
+        target: 8080
+    environment:
+      TZ: Europe/Berlin
+      KC_BOOTSTRAP_ADMIN_USERNAME: tmp
+      KC_BOOTSTRAP_ADMIN_PASSWORD: p
+    volumes:
+      - kc_data:/opt/keycloak/data
+
 volumes:
   pg_data_krankenhaus_ki:
+  kc_data:
+    external: true

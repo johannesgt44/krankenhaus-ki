@@ -66,22 +66,6 @@ Unterstuetzte REST-Operationen:
 
 Die Implementierung nutzt eine Go-typische Struktur mit `cmd/server`, `internal/app`, `internal/config`, `internal/database`, `internal/krankenhaus/domain`, `internal/krankenhaus/rest`, `internal/krankenhaus/service`, `internal/krankenhaus/repository`, `internal/problem` und `extras` fuer begleitende Dateien.
 
-### Deutsche Domaenensyntax
-
-Domain-Begriffe und JSON-Felder sind deutsch bzw. deutsch mit ASCII-Schreibweise:
-
-- `Krankenhaus`
-- `Adresse`
-- `Fachbereich`
-- `mitarbeiteranzahl`
-- `bettenanzahl`
-- `strasse`
-- `hausnummer`
-- `plz`
-- `fachbereiche`
-
-Fehlerantworten werden als Problem Details mit deutschen Details ausgeliefert.
-
 ### Validierung
 
 Create- und Update-Payloads werden vor der Persistenz validiert. Unbekannte JSON-Felder werden abgelehnt. Fehlerhafte Requests liefern HTTP `422` mit `application/problem+json`.
@@ -109,9 +93,17 @@ Die Modelle sind explizit auf die vorhandenen Tabellen gemappt:
 
 Die Schema-Erzeugung fuer Entwicklung/Test erfolgt ueber SQL-Scripts in `internal/database/sql`, nicht ueber GORM `AutoMigrate`.
 
-### Optional: OIDC mit Keycloak
+### OIDC mit Keycloak
 
-Keycloak/OIDC ist optional und in dieser ersten Umsetzung nicht erforderlich. Die REST-Struktur ist so aufgebaut, dass spaeter Middleware fuer Authentifizierung/Autorisierung ergaenzt werden kann.
+Keycloak/OIDC ist standardmaessig aktiv. Beim normalen Serverstart bleiben `GET /health`, `GET /rest/krankenhaus` und `GET /rest/krankenhaus/{id}` public. `POST`, `PUT` und `DELETE` unter `/rest/krankenhaus` benoetigen einen gueltigen Bearer-Token mit der Rolle `admin`.
+
+Keycloak lokal starten:
+
+```powershell
+docker compose -f extras/compose/compose.yml up -d keycloak
+```
+
+Keycloak ist danach unter `http://localhost:8880` erreichbar.
 
 ### Einfacher Integrationstest
 
@@ -141,7 +133,7 @@ extras/bruno/krankenhaus
 
 Die Collection enthaelt Requests fuer Health, Suche, Suche nach ID, Neuanlegen, Aendern und Loeschen. Als Basis-URL ist `http://localhost:8080` hinterlegt.
 
-## Prompts/Requests an KI-Agent/en
+## Beispiel Prompts/Requests an KI-Agent/en
 
 Die KI wurde zur Planung und Umsetzung mit OpenSpec verwendet. Dokumentiert sind nur zusammenhaengende Prompts/Requests, keine kurzen Einzelangaben wie `Sprache: Go`.
 
@@ -154,3 +146,5 @@ Die KI wurde zur Planung und Umsetzung mit OpenSpec verwendet. Dokumentiert sind
 - `Orientiere dich am lokalen Referenzprojekt C:\Users\startklar\VSCode\krankenhaus. Docker Compose soll fuer die Datenbank genutzt werden, der Go-Server soll aber Go-typisch direkt gestartet werden.`
 - `Erstelle eine Bruno-Collection fuer manuelle REST-Tests nach dem Vorbild des Referenzprojekts, aber nur fuer die vorhandenen Features: Health und REST-CRUD fuer Krankenhaus.`
 - `Vervollstaendige die README mit den verwendeten Prompts. Nimm nur sinnvolle Prompts auf und keine kurzen Einzelangaben wie "Sprache: Go".`
+- `openspec-propose oidc mithilfe von Keycloak soll eingebaut werden. Bei allem außer beim Suchen Was brauchst du von mir alles damit du starten kannst`
+

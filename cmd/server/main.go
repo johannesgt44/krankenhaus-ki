@@ -16,6 +16,7 @@ import (
 	"github.com/johannesgt44/krankenhaus-ki/internal/database"
 	"github.com/johannesgt44/krankenhaus-ki/internal/krankenhaus/repository"
 	"github.com/johannesgt44/krankenhaus-ki/internal/krankenhaus/service"
+	"github.com/johannesgt44/krankenhaus-ki/internal/security"
 )
 
 func main() {
@@ -44,7 +45,19 @@ func starten() error {
 
 	repository := repository.Neu(db)
 	dienst := service.Neu(repository)
-	handler := app.Neu(dienst)
+	appOptionen := []app.Option{}
+	if konfig.OIDC.Aktiv {
+		autorisierer, err := security.NeuerOIDCAutorisierer(context.Background(), security.OIDCKonfiguration{
+			IssuerURL:          konfig.OIDC.IssuerURL,
+			ClientID:           konfig.OIDC.ClientID,
+			ErforderlicheRolle: konfig.OIDC.ErforderlicheRolle,
+		})
+		if err != nil {
+			return err
+		}
+		appOptionen = append(appOptionen, app.MitSchreibschutz(autorisierer.Middleware))
+	}
+	handler := app.Neu(dienst, appOptionen...)
 
 	server := &http.Server{
 		Addr:              konfig.ServerAdresse,

@@ -27,14 +27,37 @@ type Handler struct {
 	dienst Dienst
 }
 
-func NeuerRouter(dienst Dienst) http.Handler {
+type RouterOption func(*routerOptionen)
+
+type routerOptionen struct {
+	schreibschutz func(http.Handler) http.Handler
+}
+
+func MitSchreibschutz(middleware func(http.Handler) http.Handler) RouterOption {
+	return func(optionen *routerOptionen) {
+		optionen.schreibschutz = middleware
+	}
+}
+
+func NeuerRouter(dienst Dienst, opts ...RouterOption) http.Handler {
+	optionen := routerOptionen{}
+	for _, opt := range opts {
+		opt(&optionen)
+	}
+
 	handler := &Handler{dienst: dienst}
 	router := chi.NewRouter()
 	router.Get("/", handler.suche)
-	router.Post("/", handler.erstellen)
 	router.Get("/{id}", handler.sucheNachID)
-	router.Put("/{id}", handler.aktualisieren)
-	router.Delete("/{id}", handler.loeschen)
+	if optionen.schreibschutz == nil {
+		router.Post("/", handler.erstellen)
+		router.Put("/{id}", handler.aktualisieren)
+		router.Delete("/{id}", handler.loeschen)
+	} else {
+		router.With(optionen.schreibschutz).Post("/", handler.erstellen)
+		router.With(optionen.schreibschutz).Put("/{id}", handler.aktualisieren)
+		router.With(optionen.schreibschutz).Delete("/{id}", handler.loeschen)
+	}
 	return router
 }
 

@@ -9,6 +9,7 @@ import (
 type Konfiguration struct {
 	ServerAdresse string
 	Datenbank     DatenbankKonfiguration
+	OIDC          OIDCKonfiguration
 }
 
 type DatenbankKonfiguration struct {
@@ -19,6 +20,13 @@ type DatenbankKonfiguration struct {
 	Passwort string
 	SSLModus string
 	Init     bool
+}
+
+type OIDCKonfiguration struct {
+	Aktiv              bool
+	IssuerURL          string
+	ClientID           string
+	ErforderlicheRolle string
 }
 
 func Laden() Konfiguration {
@@ -32,6 +40,12 @@ func Laden() Konfiguration {
 			Passwort: envString("DB_PASSWORD", "p"),
 			SSLModus: envString("DB_SSLMODE", "disable"),
 			Init:     envBool("DB_INIT", false),
+		},
+		OIDC: OIDCKonfiguration{
+			Aktiv:              envBool("OIDC_ENABLED", true),
+			IssuerURL:          envString("OIDC_ISSUER_URL", "http://localhost:8880/realms/python"),
+			ClientID:           envString("OIDC_CLIENT_ID", "python-client"),
+			ErforderlicheRolle: envString("OIDC_REQUIRED_ROLE", "admin"),
 		},
 	}
 }
