@@ -22,6 +22,21 @@ The system SHALL use GORM models to map the existing PostgreSQL tables.
 - **WHEN** the repository loads or saves addresses and departments
 - **THEN** it uses GORM models mapped to `adresse` and `fachbereich`
 
+### Requirement: Development startup can recreate and seed the database
+The system SHALL provide a configurable development/test startup path that recreates the known schema and inserts seed data.
+
+#### Scenario: Development initialization is enabled
+- **WHEN** the server starts with database initialization enabled
+- **THEN** it recreates the known tables and inserts seed data before accepting REST requests
+
+#### Scenario: Development initialization is disabled
+- **WHEN** the server starts with database initialization disabled
+- **THEN** it connects to the existing database without dropping or recreating tables
+
+#### Scenario: Schema reset uses SQL
+- **WHEN** the database is recreated for development or tests
+- **THEN** the schema is created from SQL that matches the supplied PostgreSQL schema
+
 ### Requirement: Repository hides SQL access from handlers
 The system SHALL access Krankenhaus persistence through a repository boundary instead of direct SQL in HTTP handlers.
 

@@ -17,7 +17,6 @@ The REST reference map points to TypeScript/Hono and Python/FastAPI implementati
 - Do not implement code until the user says `apply`.
 - Do not require Keycloak/OIDC for the first runnable server.
 - Do not include GraphQL, Prometheus, shutdown/admin endpoints, or full production observability in the first slice.
-- Do not include GraphQL, Prometheus, shutdown/admin endpoints, or full production observability in the first slice.
 
 ## Decisions
 
@@ -74,6 +73,12 @@ fachbereich(id, name, beschreibung, leitung, anzahlaerzte, krankenhaus_id)
 
 The Docker database is reachable on published port `5432` with database/user/password values to be handled as configuration. The supplied credentials are user `postgres` and password `p`; do not hard-code the password in source code.
 
+### Recreate and seed the database in development mode
+
+Match the prior Python/TypeScript behavior by providing an explicit development/test initialization path that can drop/recreate the known tables and insert seed data at startup. Use SQL scripts for the exact schema and seed data instead of relying on GORM `AutoMigrate`, because the schema includes identity start values, checks, indexes, tablespace selection, timestamps, and cascade relationships that should stay predictable.
+
+The normal behavior should be controlled by configuration, for example `DB_INIT=true` or a comparable dev flag. When disabled, the server only connects to the existing database. When enabled for development/test, startup runs the schema reset and seed steps before serving requests.
+
 ### Use German API messages and documentation
 
 All user-facing error details, README content, and API examples should be German. Code identifiers use German domain terms where sensible, but Go syntax and common Go naming rules remain idiomatic.
@@ -86,7 +91,7 @@ Design the routing so auth middleware can be inserted later, but do not block th
 
 - DB schema mismatch -> Mitigation: use the supplied schema as implementation source and verify against the running Docker database during apply.
 - German naming can become awkward in generic technical packages -> Mitigation: keep technical package names short/lowercase and use German naming mainly for domain types, DTOs, service methods, JSON fields, and error details.
-- GORM auto-migration could drift from the existing schema -> Mitigation: prefer explicit models and avoid destructive auto-migration; create schema only if a local test database needs initialization.
+- GORM auto-migration could drift from the existing schema -> Mitigation: use SQL reset/seed scripts for dev/test initialization and use GORM for runtime ORM mapping.
 - Overbuilding beyond the workshop -> Mitigation: implement REST CRUD only, with Keycloak and extra endpoints left optional.
 - Keycloak time sink -> Mitigation: keep optional OIDC out of the first apply slice unless explicitly requested.
 - REST edge cases around ETag/versioning -> Mitigation: implement ETag for `GET /{id}` and design version handling so `PUT` can be added later without route redesign.
