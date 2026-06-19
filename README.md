@@ -66,22 +66,6 @@ Unterstuetzte REST-Operationen:
 
 Die Implementierung nutzt eine Go-typische Struktur mit `cmd/server`, `internal/app`, `internal/config`, `internal/database`, `internal/krankenhaus/domain`, `internal/krankenhaus/rest`, `internal/krankenhaus/service`, `internal/krankenhaus/repository`, `internal/problem` und `extras` fuer begleitende Dateien.
 
-### Deutsche Domaenensyntax
-
-Domain-Begriffe und JSON-Felder sind deutsch bzw. deutsch mit ASCII-Schreibweise:
-
-- `Krankenhaus`
-- `Adresse`
-- `Fachbereich`
-- `mitarbeiteranzahl`
-- `bettenanzahl`
-- `strasse`
-- `hausnummer`
-- `plz`
-- `fachbereiche`
-
-Fehlerantworten werden als Problem Details mit deutschen Details ausgeliefert.
-
 ### Validierung
 
 Create- und Update-Payloads werden vor der Persistenz validiert. Unbekannte JSON-Felder werden abgelehnt. Fehlerhafte Requests liefern HTTP `422` mit `application/problem+json`.
@@ -109,7 +93,7 @@ Die Modelle sind explizit auf die vorhandenen Tabellen gemappt:
 
 Die Schema-Erzeugung fuer Entwicklung/Test erfolgt ueber SQL-Scripts in `internal/database/sql`, nicht ueber GORM `AutoMigrate`.
 
-### Optional: OIDC mit Keycloak
+### OIDC mit Keycloak
 
 Keycloak/OIDC ist standardmaessig aktiv. Beim normalen Serverstart bleiben `GET /health`, `GET /rest/krankenhaus` und `GET /rest/krankenhaus/{id}` public. `POST`, `PUT` und `DELETE` unter `/rest/krankenhaus` benoetigen einen gueltigen Bearer-Token mit der Rolle `admin`.
 
@@ -119,48 +103,7 @@ Keycloak lokal starten:
 docker compose -f extras/compose/compose.yml up -d keycloak
 ```
 
-Keycloak ist danach unter `http://localhost:8880` erreichbar. Die lokale Admin-Anmeldung lautet Benutzer `tmp`, Passwort `p`.
-
-Lokale Keycloak-Konfiguration fuer die Entwicklung:
-
-- Realm: `python`
-- Client: `python-client`
-- Client-Rolle: `admin`
-- Testuser mit Admin-Rolle: z.B. `admin` mit Passwort `p`
-- Testuser ohne Admin-Rolle: z.B. `user` mit Passwort `p`
-
-Im Client `python-client` sollte fuer lokale curl-Tests Direct Access Grants aktiviert sein. Die Rolle `admin` wird als Client-Rolle am Client `python-client` angelegt und dem Admin-Testuser zugewiesen. Der Server liest Rollen aus `resource_access["python-client"].roles`; Realm-Rollen werden zusaetzlich als lokaler Fallback akzeptiert.
-
-Server mit OIDC starten:
-
-```powershell
-$env:OIDC_ISSUER_URL="http://localhost:8880/realms/python"
-$env:OIDC_CLIENT_ID="python-client"
-$env:OIDC_REQUIRED_ROLE="admin"
-go run ./cmd/server
-```
-
-Die drei Werte oben sind bereits Defaults. Fuer einen lokalen Start ohne Keycloak kann OIDC explizit abgeschaltet werden:
-
-```powershell
-$env:OIDC_ENABLED="false"
-go run ./cmd/server
-```
-
-Token fuer den Admin-Testuser holen:
-
-```powershell
-$tokenResponse = Invoke-RestMethod -Method Post "http://localhost:8880/realms/python/protocol/openid-connect/token" -ContentType "application/x-www-form-urlencoded" -Body "grant_type=password&client_id=python-client&username=admin&password=p"
-$token = $tokenResponse.access_token
-```
-
-Geschuetzten Endpoint mit Token aufrufen:
-
-```powershell
-Invoke-RestMethod -Method Post "http://localhost:8080/rest/krankenhaus" -Headers @{ Authorization = "Bearer $token" } -ContentType "application/json" -Body '{"name":"Staedtisches Klinikum Test","mitarbeiteranzahl":1200,"bettenanzahl":450,"email":"test@klinikum.example","adresse":{"strasse":"Teststrasse","hausnummer":"1","plz":"76133","ort":"Karlsruhe"},"fachbereiche":[{"name":"Kardiologie","beschreibung":"Herzmedizin","leitung":"Dr. Test","anzahlaerzte":12}]}'
-```
-
-Die passenden Bruno-Requests liegen unter `extras/bruno/krankenhaus`. Dort kann der Header `Authorization: Bearer <token>` fuer geschuetzte REST-Requests gesetzt werden.
+Keycloak ist danach unter `http://localhost:8880` erreichbar.
 
 ### Einfacher Integrationstest
 
@@ -180,7 +123,7 @@ Getestet werden:
 - Invalid Create mit `422` und Problem Details
 - `count-only`
 
-## Prompts/Requests an KI-Agent/en
+## Beispiel Prompts/Requests an KI-Agent/en
 
 - `openspec-explore: neuen Server aufsetzen`
 - `Nutze openspec-rest-council.`
