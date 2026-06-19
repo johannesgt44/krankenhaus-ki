@@ -6,7 +6,7 @@ Johannes Goette und Marc Ulm
 
 ## Link zum Git-Repository
 
-https://github.com/johannesgt44/krankenhaus-ki
+[GitHub Repository](https://github.com/johannesgt44/krankenhaus-ki)
 
 ## Start
 
@@ -123,12 +123,28 @@ Getestet werden:
 - Invalid Create mit `422` und Problem Details
 - `count-only`
 
+### Bruno-Collection
+
+Eine Bruno-Collection fuer manuelle REST-Tests liegt unter:
+
+```text
+extras/bruno/krankenhaus
+```
+
+Die Collection enthaelt Requests fuer Health, Suche, Suche nach ID, Neuanlegen, Aendern und Loeschen. Als Basis-URL ist `http://localhost:8080` hinterlegt.
+
 ## Beispiel Prompts/Requests an KI-Agent/en
 
-- `openspec-explore: neuen Server aufsetzen`
-- `Nutze openspec-rest-council.`
-- `Sprache: go`
-- `Framework: entscheide welches das bes passende framework ist fuer rest`
-- `nutze zur implementierung eine go typische struktur bei rest schnittstellen und nutze deutsche syntax`
-- `openspec-apply-change`
+Die KI wurde zur Planung und Umsetzung mit OpenSpec verwendet. Dokumentiert sind nur zusammenhaengende Prompts/Requests, keine kurzen Einzelangaben wie `Sprache: Go`.
+
+- `/openspec-explore: neuen Server aufsetzen. Nutze openspec-rest-council. Schau in die README im Projekt und in die Aufgabenbeschreibung. Starte mit einem kurzen Council. Nutze danach OpenSpec, um proposal/design/tasks zu erstellen. Orientiere dich an der rest-reference-map. Noch nicht implementieren, bis ich "apply" sage.`
+- `Nutze zur Implementierung eine Go-typische Struktur bei REST-Schnittstellen und nutze deutsche Syntax fuer Domain-Begriffe, JSON-Felder und Fehlermeldungen.`
+- `Welche weitere Software wie Package Manager oder Bibliotheken sind geplant? Begruende die Auswahl fuer REST, ORM, Validierung und Tests.`
+- `Das DB-Schema besteht aus den Tabellen krankenhaus, adresse und fachbereich. Nutze PostgreSQL im Docker-Container mit Benutzer postgres und Passwort p. Verwende GORM als ORM. Implementiere neben Lesen und Neuanlegen auch Aktualisieren und Loeschen.`
+- `Die Datenbank soll wie in den bisherigen Python- und TypeScript-Projekten beim Entwicklungsstart neu erzeugt und mit Beispieldaten befuellt werden. Plane das ohne GORM AutoMigrate als Hauptmechanismus.`
+- `/openspec-apply-change`
+- `Orientiere dich am lokalen Referenzprojekt C:\Users\startklar\VSCode\krankenhaus. Docker Compose soll fuer die Datenbank genutzt werden, der Go-Server soll aber Go-typisch direkt gestartet werden.`
+- `Erstelle eine Bruno-Collection fuer manuelle REST-Tests nach dem Vorbild des Referenzprojekts, aber nur fuer die vorhandenen Features: Health und REST-CRUD fuer Krankenhaus.`
+- `Vervollstaendige die README mit den verwendeten Prompts. Nimm nur sinnvolle Prompts auf und keine kurzen Einzelangaben wie "Sprache: Go".`
 - `openspec-propose oidc mithilfe von Keycloak soll eingebaut werden. Bei allem außer beim Suchen Was brauchst du von mir alles damit du starten kannst`
+

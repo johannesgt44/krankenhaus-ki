@@ -27,7 +27,9 @@ func TestHealth(t *testing.T) {
 	if err != nil {
 		t.Fatalf("health request fehlgeschlagen: %v", err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 
 	if resp.StatusCode != http.StatusOK {
 		t.Fatalf("Status = %d, erwartet %d", resp.StatusCode, http.StatusOK)
@@ -42,7 +44,7 @@ func TestKrankenhausCRUD(t *testing.T) {
 	if err != nil {
 		t.Fatalf("create request fehlgeschlagen: %v", err)
 	}
-	createResp.Body.Close()
+	_ = createResp.Body.Close()
 	if createResp.StatusCode != http.StatusCreated {
 		t.Fatalf("create Status = %d, erwartet %d", createResp.StatusCode, http.StatusCreated)
 	}
@@ -55,7 +57,9 @@ func TestKrankenhausCRUD(t *testing.T) {
 	if err != nil {
 		t.Fatalf("read request fehlgeschlagen: %v", err)
 	}
-	defer readResp.Body.Close()
+	defer func() {
+		_ = readResp.Body.Close()
+	}()
 	if readResp.StatusCode != http.StatusOK {
 		t.Fatalf("read Status = %d, erwartet %d", readResp.StatusCode, http.StatusOK)
 	}
@@ -79,7 +83,7 @@ func TestKrankenhausCRUD(t *testing.T) {
 	if err != nil {
 		t.Fatalf("update request fehlgeschlagen: %v", err)
 	}
-	updateResp.Body.Close()
+	_ = updateResp.Body.Close()
 	if updateResp.StatusCode != http.StatusNoContent {
 		t.Fatalf("update Status = %d, erwartet %d", updateResp.StatusCode, http.StatusNoContent)
 	}
@@ -95,7 +99,7 @@ func TestKrankenhausCRUD(t *testing.T) {
 	if err != nil {
 		t.Fatalf("delete request fehlgeschlagen: %v", err)
 	}
-	deleteResp.Body.Close()
+	_ = deleteResp.Body.Close()
 	if deleteResp.StatusCode != http.StatusNoContent {
 		t.Fatalf("delete Status = %d, erwartet %d", deleteResp.StatusCode, http.StatusNoContent)
 	}
@@ -225,7 +229,9 @@ func TestUngueltigerCreateRequestLiefertProblemDetails(t *testing.T) {
 	if err != nil {
 		t.Fatalf("invalid create request fehlgeschlagen: %v", err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 
 	if resp.StatusCode != http.StatusUnprocessableEntity {
 		t.Fatalf("Status = %d, erwartet %d", resp.StatusCode, http.StatusUnprocessableEntity)
@@ -316,7 +322,9 @@ func TestListeUndCountOnly(t *testing.T) {
 	if err != nil {
 		t.Fatalf("count-only request fehlgeschlagen: %v", err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 	if resp.StatusCode != http.StatusOK {
 		t.Fatalf("Status = %d, erwartet %d", resp.StatusCode, http.StatusOK)
 	}
