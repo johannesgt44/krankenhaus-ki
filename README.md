@@ -24,12 +24,6 @@ Dann den Go-Server starten und die Tabellen fuer Entwicklung/Test neu erzeugen u
 go run ./cmd/server -db-init
 ```
 
-Wenn `go` nicht im `PATH` ist:
-
-```powershell
-& "C:\Program Files\Go\bin\go.exe" run ./cmd/server -db-init
-```
-
 Ohne DB-Reset:
 
 ```powershell
@@ -143,10 +137,5 @@ Getestet werden:
 - `Nutze openspec-rest-council.`
 - `Sprache: go`
 - `Framework: entscheide welches das bes passende framework ist fuer rest`
-- `Nutze danach OpenSpec, um proposal/design/tasks zu erstellen.`
-- `Noch nicht implementieren, bis ich "apply" sage.`
 - `nutze zur implementierung eine go typische struktur bei rest schnittstellen und nutze deutsche syntax`
-- `ORM bitte GORM`
-- `auch update und delete`
-- `alles deutsch`
 - `/openspec-apply-change`
