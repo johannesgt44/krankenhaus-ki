@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"strings"
 	"sync"
 	"testing"
@@ -14,6 +16,7 @@ import (
 	"github.com/johannesgt44/krankenhaus-ki/internal/app"
 	"github.com/johannesgt44/krankenhaus-ki/internal/krankenhaus/domain"
 	"github.com/johannesgt44/krankenhaus-ki/internal/krankenhaus/service"
+	"github.com/johannesgt44/krankenhaus-ki/internal/security"
 )
 
 func TestHealth(t *testing.T) {
@@ -35,23 +38,7 @@ func TestKrankenhausCRUD(t *testing.T) {
 	server := httptest.NewServer(app.Neu(neuerFakeDienst()))
 	defer server.Close()
 
-	payload := `{
-		"name": "Staedtisches Klinikum Test",
-		"mitarbeiteranzahl": 1200,
-		"bettenanzahl": 450,
-		"email": "test@klinikum.example",
-		"adresse": {
-			"strasse": "Teststrasse",
-			"hausnummer": "1",
-			"plz": "76133",
-			"ort": "Karlsruhe"
-		},
-		"fachbereiche": [
-			{"name": "Kardiologie", "beschreibung": "Herzmedizin", "leitung": "Dr. Test", "anzahlaerzte": 12}
-		]
-	}`
-
-	createResp, err := http.Post(server.URL+"/rest/krankenhaus", "application/json", strings.NewReader(payload))
+	createResp, err := http.Post(server.URL+"/rest/krankenhaus", "application/json", strings.NewReader(gueltigerCreatePayload()))
 	if err != nil {
 		t.Fatalf("create request fehlgeschlagen: %v", err)
 	}
@@ -111,6 +98,122 @@ func TestKrankenhausCRUD(t *testing.T) {
 	deleteResp.Body.Close()
 	if deleteResp.StatusCode != http.StatusNoContent {
 		t.Fatalf("delete Status = %d, erwartet %d", deleteResp.StatusCode, http.StatusNoContent)
+	}
+}
+
+func TestOeffentlicheEndpunkteOhneTokenMitOIDC(t *testing.T) {
+	dienst := neuerFakeDienst()
+	id, err := dienst.Erstellen(context.Background(), beispielKrankenhaus())
+	if err != nil {
+		t.Fatalf("Testkrankenhaus konnte nicht erstellt werden: %v", err)
+	}
+	server := httptest.NewServer(app.Neu(dienst, app.MitSchreibschutz(authMiddlewareMitRollen([]string{"admin"}, nil))))
+	defer server.Close()
+
+	pfade := []string{
+		"/health",
+		"/rest/krankenhaus",
+		"/rest/krankenhaus/" + strconv.Itoa(id),
+	}
+	for _, pfad := range pfade {
+		resp, err := http.Get(server.URL + pfad)
+		if err != nil {
+			t.Fatalf("GET %s fehlgeschlagen: %v", pfad, err)
+		}
+		resp.Body.Close()
+		if resp.StatusCode != http.StatusOK {
+			t.Fatalf("GET %s Status = %d, erwartet %d", pfad, resp.StatusCode, http.StatusOK)
+		}
+	}
+}
+
+func TestGeschuetzteEndpunkteOhneTokenLiefernUnauthorized(t *testing.T) {
+	server := httptest.NewServer(app.Neu(neuerFakeDienst(), app.MitSchreibschutz(authMiddlewareMitRollen([]string{"admin"}, nil))))
+	defer server.Close()
+
+	tests := []struct {
+		methode string
+		pfad    string
+		body    string
+	}{
+		{methode: http.MethodPost, pfad: "/rest/krankenhaus", body: gueltigerCreatePayload()},
+		{methode: http.MethodPut, pfad: "/rest/krankenhaus/1000", body: gueltigerUpdatePayload()},
+		{methode: http.MethodDelete, pfad: "/rest/krankenhaus/1000"},
+	}
+	for _, test := range tests {
+		req, err := http.NewRequest(test.methode, server.URL+test.pfad, strings.NewReader(test.body))
+		if err != nil {
+			t.Fatalf("%s request konnte nicht erstellt werden: %v", test.methode, err)
+		}
+		req.Header.Set("Content-Type", "application/json")
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			t.Fatalf("%s %s fehlgeschlagen: %v", test.methode, test.pfad, err)
+		}
+		resp.Body.Close()
+		if resp.StatusCode != http.StatusUnauthorized {
+			t.Fatalf("%s %s Status = %d, erwartet %d", test.methode, test.pfad, resp.StatusCode, http.StatusUnauthorized)
+		}
+	}
+}
+
+func TestGeschuetzterEndpunktMitTokenOhneAdminRolleLiefertForbidden(t *testing.T) {
+	server := httptest.NewServer(app.Neu(neuerFakeDienst(), app.MitSchreibschutz(authMiddlewareMitRollen([]string{"user"}, nil))))
+	defer server.Close()
+
+	req, err := http.NewRequest(http.MethodPost, server.URL+"/rest/krankenhaus", strings.NewReader(gueltigerCreatePayload()))
+	if err != nil {
+		t.Fatalf("request konnte nicht erstellt werden: %v", err)
+	}
+	req.Header.Set("Authorization", "Bearer gueltig")
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatalf("request fehlgeschlagen: %v", err)
+	}
+	resp.Body.Close()
+	if resp.StatusCode != http.StatusForbidden {
+		t.Fatalf("Status = %d, erwartet %d", resp.StatusCode, http.StatusForbidden)
+	}
+}
+
+func TestGeschuetzterEndpunktMitAdminRolleWirdVerarbeitet(t *testing.T) {
+	server := httptest.NewServer(app.Neu(neuerFakeDienst(), app.MitSchreibschutz(authMiddlewareMitRollen([]string{"admin"}, nil))))
+	defer server.Close()
+
+	req, err := http.NewRequest(http.MethodPost, server.URL+"/rest/krankenhaus", strings.NewReader(gueltigerCreatePayload()))
+	if err != nil {
+		t.Fatalf("request konnte nicht erstellt werden: %v", err)
+	}
+	req.Header.Set("Authorization", "Bearer gueltig")
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatalf("request fehlgeschlagen: %v", err)
+	}
+	resp.Body.Close()
+	if resp.StatusCode != http.StatusCreated {
+		t.Fatalf("Status = %d, erwartet %d", resp.StatusCode, http.StatusCreated)
+	}
+}
+
+func TestGeschuetzterEndpunktMitUngueltigemTokenLiefertUnauthorized(t *testing.T) {
+	server := httptest.NewServer(app.Neu(neuerFakeDienst(), app.MitSchreibschutz(authMiddlewareMitRollen(nil, errors.New("ungueltig")))))
+	defer server.Close()
+
+	req, err := http.NewRequest(http.MethodPost, server.URL+"/rest/krankenhaus", strings.NewReader(gueltigerCreatePayload()))
+	if err != nil {
+		t.Fatalf("request konnte nicht erstellt werden: %v", err)
+	}
+	req.Header.Set("Authorization", "Bearer ungueltig")
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatalf("request fehlgeschlagen: %v", err)
+	}
+	resp.Body.Close()
+	if resp.StatusCode != http.StatusUnauthorized {
+		t.Fatalf("Status = %d, erwartet %d", resp.StatusCode, http.StatusUnauthorized)
 	}
 }
 
@@ -223,5 +326,74 @@ func TestListeUndCountOnly(t *testing.T) {
 	}
 	if body["count"] != 0 {
 		t.Fatalf("count = %d, erwartet 0", body["count"])
+	}
+}
+
+type fakeVerifizierer struct {
+	rollen []string
+	err    error
+}
+
+func (f fakeVerifizierer) Verifizieren(_ context.Context, _ string, claims any) error {
+	if f.err != nil {
+		return f.err
+	}
+	keycloakClaims := claims.(*security.KeycloakClaims)
+	keycloakClaims.ResourceAccess = map[string]security.RollenZugriff{
+		"javascript-client": {Roles: f.rollen},
+	}
+	return nil
+}
+
+func authMiddlewareMitRollen(rollen []string, err error) func(http.Handler) http.Handler {
+	autorisierer := security.NeuerAutorisierer(fakeVerifizierer{rollen: rollen, err: err}, "javascript-client", "admin")
+	return autorisierer.Middleware
+}
+
+func gueltigerCreatePayload() string {
+	return `{
+		"name": "Staedtisches Klinikum Test",
+		"mitarbeiteranzahl": 1200,
+		"bettenanzahl": 450,
+		"email": "test@klinikum.example",
+		"adresse": {
+			"strasse": "Teststrasse",
+			"hausnummer": "1",
+			"plz": "76133",
+			"ort": "Karlsruhe"
+		},
+		"fachbereiche": [
+			{"name": "Kardiologie", "beschreibung": "Herzmedizin", "leitung": "Dr. Test", "anzahlaerzte": 12}
+		]
+	}`
+}
+
+func gueltigerUpdatePayload() string {
+	return `{
+		"name": "Staedtisches Klinikum Aktualisiert",
+		"mitarbeiteranzahl": 1300,
+		"bettenanzahl": 470,
+		"email": "aktualisiert@klinikum.example"
+	}`
+}
+
+func beispielKrankenhaus() domain.Krankenhaus {
+	return domain.Krankenhaus{
+		Name:              "Staedtisches Klinikum Test",
+		Mitarbeiteranzahl: 1200,
+		Bettenanzahl:      450,
+		Email:             "test@klinikum.example",
+		Adresse: domain.Adresse{
+			Strasse:    "Teststrasse",
+			Hausnummer: "1",
+			PLZ:        "76133",
+			Ort:        "Karlsruhe",
+		},
+		Fachbereiche: []domain.Fachbereich{{
+			Name:         "Kardiologie",
+			Beschreibung: "Herzmedizin",
+			Leitung:      "Dr. Test",
+			Anzahlaerzte: 12,
+		}},
 	}
 }

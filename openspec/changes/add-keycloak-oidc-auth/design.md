@@ -49,11 +49,11 @@ The alternative was protecting the complete `/rest/krankenhaus` mount and adding
 
 The planned local Keycloak setup uses:
 
-- realm: `krankenhaus`
-- client: `krankenhaus-client`
+- realm: `javascript`
+- client: `javascript-client`
 - role: `admin`
 
-The middleware should prefer client roles from `resource_access["krankenhaus-client"].roles`. Accepting `realm_access.roles` as a fallback is acceptable if it simplifies manual local setup, but tests should cover the configured client-role behavior.
+The middleware should prefer client roles from `resource_access["javascript-client"].roles`. Accepting `realm_access.roles` as a fallback is acceptable if it simplifies manual local setup, but tests should cover the configured client-role behavior.
 
 ### Add OIDC configuration under `internal/config`
 
@@ -66,12 +66,12 @@ Configuration will be loaded from environment variables, for example:
 
 Recommended defaults for local development:
 
-- `OIDC_ENABLED=false`
-- `OIDC_ISSUER_URL=http://localhost:8880/realms/krankenhaus`
-- `OIDC_CLIENT_ID=krankenhaus-client`
+- `OIDC_ENABLED=true`
+- `OIDC_ISSUER_URL=http://localhost:8880/realms/javascript`
+- `OIDC_CLIENT_ID=javascript-client`
 - `OIDC_REQUIRED_ROLE=admin`
 
-Keeping `OIDC_ENABLED=false` by default avoids breaking local `go run ./cmd/server` before Keycloak is running. Tests can enable middleware explicitly.
+Keeping `OIDC_ENABLED=true` by default makes protected routes active for normal workshop starts. Developers can set `OIDC_ENABLED=false` explicitly when they want to run the server without local Keycloak.
 
 ### Use a standard OIDC/JWT validation library
 
@@ -93,7 +93,7 @@ If PostgreSQL setup becomes too heavy for the workshop scope, the implementation
 ## Risks / Trade-offs
 
 - Keycloak claim shape can differ depending on realm/client-role configuration -> document the expected role mapping and test the claim parser with representative claims.
-- Keeping `OIDC_ENABLED=false` by default avoids local startup failures, but can hide missing auth in development -> README must clearly show how to enable OIDC and tests must cover enabled behavior.
+- Keeping `OIDC_ENABLED=true` by default requires local Keycloak for normal protected-route startup, but avoids accidentally testing write endpoints without auth -> README must clearly show how to disable OIDC for local troubleshooting.
 - Keycloak with PostgreSQL adds Compose complexity -> keep commands and defaults close to the reference project and document manual realm/client setup.
 - Local issuer URLs differ between host and Docker networking -> support configurable issuer URL and document the host-default value.
 

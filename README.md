@@ -111,7 +111,56 @@ Die Schema-Erzeugung fuer Entwicklung/Test erfolgt ueber SQL-Scripts in `interna
 
 ### Optional: OIDC mit Keycloak
 
-Keycloak/OIDC ist optional und in dieser ersten Umsetzung nicht erforderlich. Die REST-Struktur ist so aufgebaut, dass spaeter Middleware fuer Authentifizierung/Autorisierung ergaenzt werden kann.
+Keycloak/OIDC ist standardmaessig aktiv. Beim normalen Serverstart bleiben `GET /health`, `GET /rest/krankenhaus` und `GET /rest/krankenhaus/{id}` public. `POST`, `PUT` und `DELETE` unter `/rest/krankenhaus` benoetigen einen gueltigen Bearer-Token mit der Rolle `admin`.
+
+Keycloak lokal starten:
+
+```powershell
+docker compose -f extras/compose/compose.yml up -d keycloak
+```
+
+Keycloak ist danach unter `http://localhost:8880` erreichbar. Die lokale Admin-Anmeldung lautet Benutzer `tmp`, Passwort `p`.
+
+Lokale Keycloak-Konfiguration fuer die Entwicklung:
+
+- Realm: `javascript`
+- Client: `javascript-client`
+- Client-Rolle: `admin`
+- Testuser mit Admin-Rolle: z.B. `admin` mit Passwort `p`
+- Testuser ohne Admin-Rolle: z.B. `user` mit Passwort `p`
+
+Im Client `javascript-client` sollte fuer lokale curl-Tests Direct Access Grants aktiviert sein. Die Rolle `admin` wird als Client-Rolle am Client `javascript-client` angelegt und dem Admin-Testuser zugewiesen. Der Server liest Rollen aus `resource_access["javascript-client"].roles`; Realm-Rollen werden zusaetzlich als lokaler Fallback akzeptiert.
+
+Server mit OIDC starten:
+
+```powershell
+$env:OIDC_ISSUER_URL="http://localhost:8880/realms/javascript"
+$env:OIDC_CLIENT_ID="javascript-client"
+$env:OIDC_REQUIRED_ROLE="admin"
+go run ./cmd/server
+```
+
+Die drei Werte oben sind bereits Defaults. Fuer einen lokalen Start ohne Keycloak kann OIDC explizit abgeschaltet werden:
+
+```powershell
+$env:OIDC_ENABLED="false"
+go run ./cmd/server
+```
+
+Token fuer den Admin-Testuser holen:
+
+```powershell
+$tokenResponse = Invoke-RestMethod -Method Post "http://localhost:8880/realms/javascript/protocol/openid-connect/token" -ContentType "application/x-www-form-urlencoded" -Body "grant_type=password&client_id=javascript-client&username=admin&password=p"
+$token = $tokenResponse.access_token
+```
+
+Geschuetzten Endpoint mit Token aufrufen:
+
+```powershell
+Invoke-RestMethod -Method Post "http://localhost:8080/rest/krankenhaus" -Headers @{ Authorization = "Bearer $token" } -ContentType "application/json" -Body '{"name":"Staedtisches Klinikum Test","mitarbeiteranzahl":1200,"bettenanzahl":450,"email":"test@klinikum.example","adresse":{"strasse":"Teststrasse","hausnummer":"1","plz":"76133","ort":"Karlsruhe"},"fachbereiche":[{"name":"Kardiologie","beschreibung":"Herzmedizin","leitung":"Dr. Test","anzahlaerzte":12}]}'
+```
+
+Die passenden Bruno-Requests liegen unter `extras/bruno/krankenhaus`. Dort kann der Header `Authorization: Bearer <token>` fuer geschuetzte REST-Requests gesetzt werden.
 
 ### Einfacher Integrationstest
 

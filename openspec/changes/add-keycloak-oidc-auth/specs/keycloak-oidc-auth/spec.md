@@ -48,8 +48,12 @@ The system SHALL require a valid Keycloak access token with the configured admin
 ### Requirement: OIDC configuration is environment-driven
 The system SHALL load OIDC settings from environment variables so local Keycloak and other OIDC issuers can be configured without code changes.
 
-#### Scenario: OIDC disabled by default
-- **WHEN** the server starts without `OIDC_ENABLED=true`
+#### Scenario: OIDC enabled by default
+- **WHEN** the server starts without `OIDC_ENABLED=false`
+- **THEN** the system enables OIDC token validation for protected routes
+
+#### Scenario: OIDC explicitly disabled
+- **WHEN** the server starts with `OIDC_ENABLED=false`
 - **THEN** the system starts without requiring a reachable Keycloak issuer
 
 #### Scenario: OIDC enabled with issuer and client
