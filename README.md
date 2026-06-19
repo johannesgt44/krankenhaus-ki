@@ -133,9 +133,10 @@ Getestet werden:
 
 ## Prompts/Requests an KI-Agent/en
 
-- `/openspec-explore: neuen Server aufsetzen`
+- `openspec-explore: neuen Server aufsetzen`
 - `Nutze openspec-rest-council.`
 - `Sprache: go`
 - `Framework: entscheide welches das bes passende framework ist fuer rest`
 - `nutze zur implementierung eine go typische struktur bei rest schnittstellen und nutze deutsche syntax`
-- `/openspec-apply-change`
+- `openspec-apply-change`
+- `openspec-propose oidc mithilfe von Keycloak soll eingebaut werden. Bei allem außer beim Suchen Was brauchst du von mir alles damit du starten kannst`
