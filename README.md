@@ -6,7 +6,7 @@ Johannes Goette und Marc Ulm
 
 ## Link zum Git-Repository
 
-https://github.com/johannesgt44/krankenhaus-ki
+[GitHub Repository](https://github.com/johannesgt44/krankenhaus-ki)
 
 ## Start
 
