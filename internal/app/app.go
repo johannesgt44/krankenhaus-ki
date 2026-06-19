@@ -12,7 +12,6 @@ import (
 func Neu(dienst krankenhausrest.Dienst) http.Handler {
 	router := chi.NewRouter()
 	router.Use(middleware.RequestID)
-	router.Use(middleware.RealIP)
 	router.Use(middleware.Recoverer)
 
 	router.Get("/health", func(w http.ResponseWriter, _ *http.Request) {
