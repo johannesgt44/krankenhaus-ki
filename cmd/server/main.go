@@ -39,7 +39,9 @@ func starten() error {
 	if err != nil {
 		return err
 	}
-	defer sqlDB.Close()
+	defer func() {
+		_ = sqlDB.Close()
+	}()
 
 	repository := repository.Neu(db)
 	dienst := service.Neu(repository)
