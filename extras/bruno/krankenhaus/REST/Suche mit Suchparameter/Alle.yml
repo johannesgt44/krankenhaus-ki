@@ -1,0 +1,37 @@
+info:
+  name: Alle
+  type: http
+  seq: 1
+
+http:
+  method: GET
+  url: "{{restUrl}}"
+  headers:
+    - name: Accept
+      value: application/json
+  auth: inherit
+
+runtime:
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "200"
+    - expression: res.headers['content-type']
+      operator: matches
+      value: ^application\/json(; charset=utf-8)?$
+    - expression: res.body.content
+      operator: isArray
+    - expression: res.body.content
+      operator: isNotEmpty
+    - expression: res.body.page
+      operator: eq
+      value: "0"
+    - expression: res.body.size
+      operator: eq
+      value: "20"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

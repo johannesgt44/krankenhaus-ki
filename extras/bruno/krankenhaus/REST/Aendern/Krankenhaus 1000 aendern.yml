@@ -1,0 +1,46 @@
+info:
+  name: Krankenhaus 1000 aendern
+  type: http
+  seq: 1
+
+http:
+  method: PUT
+  url: "{{restUrl}}/:id"
+  headers:
+    - name: Content-Type
+      value: application/json
+    - name: If-Match
+      value: '"0"'
+  params:
+    - name: id
+      value: "{{vorhandeneId}}"
+      type: path
+  body:
+    type: json
+    data: |-
+      {
+        "name": "Staedtisches Klinikum Karlsruhe Bruno",
+        "mitarbeiteranzahl": 4300,
+        "bettenanzahl": 1510,
+        "email": "bruno-karlsruhe@krankenhaus.example"
+      }
+  auth: inherit
+
+runtime:
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "204"
+    - expression: res.headers.etag
+      operator: eq
+      value: '''"1"'''
+    - expression: res.body
+      operator: isString
+    - expression: res.body
+      operator: isEmpty
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -1,0 +1,43 @@
+info:
+  name: Neues Krankenhaus mit ungueltigen Daten
+  type: http
+  seq: 2
+
+http:
+  method: POST
+  url: "{{restUrl}}"
+  headers:
+    - name: Content-Type
+      value: application/json
+  body:
+    type: json
+    data: |-
+      {
+        "name": "",
+        "mitarbeiteranzahl": -1,
+        "bettenanzahl": -1,
+        "email": "ungueltig",
+        "adresse": {
+          "strasse": "",
+          "hausnummer": "",
+          "plz": "123",
+          "ort": ""
+        },
+        "fachbereiche": []
+      }
+  auth: inherit
+
+runtime:
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "422"
+    - expression: res.headers['content-type']
+      operator: matches
+      value: ^application\/problem\+json(; charset=utf-8)?$
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -1,0 +1,8 @@
+name: krankenhaus
+variables:
+  - name: baseUrl
+    value: http://localhost:8080
+  - name: vorhandeneId
+    value: "1000"
+  - name: loeschId
+    value: "1002"

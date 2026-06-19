@@ -1,0 +1,7 @@
+info:
+  name: Aendern
+  type: folder
+  seq: 4
+
+request:
+  auth: inherit

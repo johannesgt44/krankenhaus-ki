@@ -1,0 +1,29 @@
+info:
+  name: Nicht-vorhandenes Krankenhaus 999999 loeschen
+  type: http
+  seq: 2
+
+http:
+  method: DELETE
+  url: "{{restUrl}}/:id"
+  params:
+    - name: id
+      value: "999999"
+      type: path
+  auth: inherit
+
+runtime:
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "204"
+    - expression: res.body
+      operator: isString
+    - expression: res.body
+      operator: isEmpty
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

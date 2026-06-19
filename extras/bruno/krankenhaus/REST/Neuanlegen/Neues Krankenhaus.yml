@@ -1,0 +1,54 @@
+info:
+  name: Neues Krankenhaus
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{restUrl}}"
+  headers:
+    - name: Content-Type
+      value: application/json
+  body:
+    type: json
+    data: |-
+      {
+        "name": "Krankenhaus Bruno Test",
+        "mitarbeiteranzahl": 100,
+        "bettenanzahl": 50,
+        "email": "bruno-test@krankenhaus.example",
+        "adresse": {
+          "strasse": "Teststrasse",
+          "hausnummer": "1",
+          "plz": "12345",
+          "ort": "Teststadt"
+        },
+        "fachbereiche": [
+          {
+            "name": "Chirurgie",
+            "beschreibung": "Test-Fachbereich",
+            "leitung": "Dr. Bruno",
+            "anzahlaerzte": 5
+          }
+        ]
+      }
+  auth: inherit
+
+runtime:
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "201"
+    - expression: res.headers.location
+      operator: matches
+      value: ^/rest/krankenhaus/[1-9]\d*$
+    - expression: res.body
+      operator: isString
+    - expression: res.body
+      operator: isEmpty
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

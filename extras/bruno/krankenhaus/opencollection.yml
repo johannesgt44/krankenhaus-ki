@@ -1,0 +1,34 @@
+opencollection: 1.0.0
+
+info:
+  name: krankenhaus-ki
+config:
+  proxy:
+    inherit: true
+    config:
+      protocol: http
+      hostname: ""
+      port: ""
+      auth:
+        username: ""
+        password: ""
+      bypassProxy: ""
+
+request:
+  variables:
+    - name: baseUrl
+      value: http://localhost:8080
+    - name: restUrl
+      value: "{{baseUrl}}/rest/krankenhaus"
+    - name: healthUrl
+      value: "{{baseUrl}}/health"
+    - name: vorhandeneId
+      value: "1000"
+    - name: loeschId
+      value: "1002"
+bundled: false
+extensions:
+  bruno:
+    ignore:
+      - node_modules
+      - .git

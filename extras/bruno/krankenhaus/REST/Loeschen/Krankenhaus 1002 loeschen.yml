@@ -1,0 +1,29 @@
+info:
+  name: Krankenhaus 1002 loeschen
+  type: http
+  seq: 1
+
+http:
+  method: DELETE
+  url: "{{restUrl}}/:id"
+  params:
+    - name: id
+      value: "{{loeschId}}"
+      type: path
+  auth: inherit
+
+runtime:
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "204"
+    - expression: res.body
+      operator: isString
+    - expression: res.body
+      operator: isEmpty
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
