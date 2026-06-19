@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
@@ -27,7 +28,7 @@ func TestHealth(t *testing.T) {
 	if err != nil {
 		t.Fatalf("health request fehlgeschlagen: %v", err)
 	}
-	defer resp.Body.Close()
+	defer schliesseBody(t, resp.Body)
 
 	if resp.StatusCode != http.StatusOK {
 		t.Fatalf("Status = %d, erwartet %d", resp.StatusCode, http.StatusOK)
@@ -42,7 +43,7 @@ func TestKrankenhausCRUD(t *testing.T) {
 	if err != nil {
 		t.Fatalf("create request fehlgeschlagen: %v", err)
 	}
-	createResp.Body.Close()
+	schliesseBody(t, createResp.Body)
 	if createResp.StatusCode != http.StatusCreated {
 		t.Fatalf("create Status = %d, erwartet %d", createResp.StatusCode, http.StatusCreated)
 	}
@@ -55,7 +56,7 @@ func TestKrankenhausCRUD(t *testing.T) {
 	if err != nil {
 		t.Fatalf("read request fehlgeschlagen: %v", err)
 	}
-	defer readResp.Body.Close()
+	defer schliesseBody(t, readResp.Body)
 	if readResp.StatusCode != http.StatusOK {
 		t.Fatalf("read Status = %d, erwartet %d", readResp.StatusCode, http.StatusOK)
 	}
@@ -79,7 +80,7 @@ func TestKrankenhausCRUD(t *testing.T) {
 	if err != nil {
 		t.Fatalf("update request fehlgeschlagen: %v", err)
 	}
-	updateResp.Body.Close()
+	schliesseBody(t, updateResp.Body)
 	if updateResp.StatusCode != http.StatusNoContent {
 		t.Fatalf("update Status = %d, erwartet %d", updateResp.StatusCode, http.StatusNoContent)
 	}
@@ -95,7 +96,7 @@ func TestKrankenhausCRUD(t *testing.T) {
 	if err != nil {
 		t.Fatalf("delete request fehlgeschlagen: %v", err)
 	}
-	deleteResp.Body.Close()
+	schliesseBody(t, deleteResp.Body)
 	if deleteResp.StatusCode != http.StatusNoContent {
 		t.Fatalf("delete Status = %d, erwartet %d", deleteResp.StatusCode, http.StatusNoContent)
 	}
@@ -120,7 +121,7 @@ func TestOeffentlicheEndpunkteOhneTokenMitOIDC(t *testing.T) {
 		if err != nil {
 			t.Fatalf("GET %s fehlgeschlagen: %v", pfad, err)
 		}
-		resp.Body.Close()
+		schliesseBody(t, resp.Body)
 		if resp.StatusCode != http.StatusOK {
 			t.Fatalf("GET %s Status = %d, erwartet %d", pfad, resp.StatusCode, http.StatusOK)
 		}
@@ -150,7 +151,7 @@ func TestGeschuetzteEndpunkteOhneTokenLiefernUnauthorized(t *testing.T) {
 		if err != nil {
 			t.Fatalf("%s %s fehlgeschlagen: %v", test.methode, test.pfad, err)
 		}
-		resp.Body.Close()
+		schliesseBody(t, resp.Body)
 		if resp.StatusCode != http.StatusUnauthorized {
 			t.Fatalf("%s %s Status = %d, erwartet %d", test.methode, test.pfad, resp.StatusCode, http.StatusUnauthorized)
 		}
@@ -171,7 +172,7 @@ func TestGeschuetzterEndpunktMitTokenOhneAdminRolleLiefertForbidden(t *testing.T
 	if err != nil {
 		t.Fatalf("request fehlgeschlagen: %v", err)
 	}
-	resp.Body.Close()
+	schliesseBody(t, resp.Body)
 	if resp.StatusCode != http.StatusForbidden {
 		t.Fatalf("Status = %d, erwartet %d", resp.StatusCode, http.StatusForbidden)
 	}
@@ -191,7 +192,7 @@ func TestGeschuetzterEndpunktMitAdminRolleWirdVerarbeitet(t *testing.T) {
 	if err != nil {
 		t.Fatalf("request fehlgeschlagen: %v", err)
 	}
-	resp.Body.Close()
+	schliesseBody(t, resp.Body)
 	if resp.StatusCode != http.StatusCreated {
 		t.Fatalf("Status = %d, erwartet %d", resp.StatusCode, http.StatusCreated)
 	}
@@ -211,7 +212,7 @@ func TestGeschuetzterEndpunktMitUngueltigemTokenLiefertUnauthorized(t *testing.T
 	if err != nil {
 		t.Fatalf("request fehlgeschlagen: %v", err)
 	}
-	resp.Body.Close()
+	schliesseBody(t, resp.Body)
 	if resp.StatusCode != http.StatusUnauthorized {
 		t.Fatalf("Status = %d, erwartet %d", resp.StatusCode, http.StatusUnauthorized)
 	}
@@ -225,7 +226,7 @@ func TestUngueltigerCreateRequestLiefertProblemDetails(t *testing.T) {
 	if err != nil {
 		t.Fatalf("invalid create request fehlgeschlagen: %v", err)
 	}
-	defer resp.Body.Close()
+	defer schliesseBody(t, resp.Body)
 
 	if resp.StatusCode != http.StatusUnprocessableEntity {
 		t.Fatalf("Status = %d, erwartet %d", resp.StatusCode, http.StatusUnprocessableEntity)
@@ -316,7 +317,7 @@ func TestListeUndCountOnly(t *testing.T) {
 	if err != nil {
 		t.Fatalf("count-only request fehlgeschlagen: %v", err)
 	}
-	defer resp.Body.Close()
+	defer schliesseBody(t, resp.Body)
 	if resp.StatusCode != http.StatusOK {
 		t.Fatalf("Status = %d, erwartet %d", resp.StatusCode, http.StatusOK)
 	}
@@ -326,6 +327,13 @@ func TestListeUndCountOnly(t *testing.T) {
 	}
 	if body["count"] != 0 {
 		t.Fatalf("count = %d, erwartet 0", body["count"])
+	}
+}
+
+func schliesseBody(t *testing.T, body io.Closer) {
+	t.Helper()
+	if err := body.Close(); err != nil {
+		t.Fatalf("Response Body konnte nicht geschlossen werden: %v", err)
 	}
 }
 
